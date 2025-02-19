@@ -1,5 +1,7 @@
 # eshop_advpro
 
+## Link -> https://alright-carlen-danielangger-00867105.koyeb.app
+
 ## Tutorial 1
 ### Reflection 1
 Saya sudah memperlajari cara menulis kode dengan prinsip "clean code" dan "secure code practices" minggu ini, dan saya rasa saya sudah berusaha untuk menerapkannya pada tutorial kali ini, saya sudah bertanya kepada teman saya tentang kode saya, dan mereka rata-rata langsung mengetahui dan bisa mempelajari maksud kode saya dan apa yang coba saya lakukan, jadi secara garis besar, saya rasa saya sudah menerapkan apa yang saya pelajari minggu ini, tidak hanya kebenaran sintaks dan fungsionalnya saja.
