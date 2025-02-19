@@ -99,4 +99,14 @@ class ProductControllerTest {
         verify(productService, times(1)).update(sampleProduct);
         assertEquals("redirect:/product/list", viewName);
     }
+
+    @Test
+    void testHomePage() {
+        HomeController controller = new HomeController();
+        Model model = mock(Model.class); // Mock Model object
+
+        String viewName = controller.homePage(model);
+
+        assertEquals("home", viewName); // Pastikan return valuenya benar
+    }
 }
