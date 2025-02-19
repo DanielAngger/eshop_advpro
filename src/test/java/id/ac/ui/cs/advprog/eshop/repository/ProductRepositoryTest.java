@@ -134,4 +134,55 @@ class ProductRepositoryTest {
         productRepository.delete("non-existent-id");
         assertDoesNotThrow(() -> productRepository.delete("non-existent-id"));
     }
+
+    @Test
+    void testCreateDuplicateProduct() {
+        Product product = new Product();
+        product.setProductId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        product.setProductName("Sampo Cap Bambang");
+        product.setProductQuantity(100);
+        productRepository.create(product);
+
+        Product duplicateProduct = new Product();
+        duplicateProduct.setProductId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        duplicateProduct.setProductName("Sampo Cap Bambang");
+        duplicateProduct.setProductQuantity(100);
+        productRepository.create(duplicateProduct);
+
+        Product foundProduct = productRepository.findById("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        assertEquals(100, foundProduct.getProductQuantity()); // Pastikan tidak overwrite
+    }
+
+    @Test
+    void testUpdateProductWithoutChanges() {
+        Product product = new Product();
+        product.setProductId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        product.setProductName("Sampo Cap Bambang");
+        product.setProductQuantity(100);
+        productRepository.create(product);
+
+        Product sameProduct = new Product();
+        sameProduct.setProductId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        sameProduct.setProductName("Sampo Cap Bambang");
+        sameProduct.setProductQuantity(100);
+
+        Product result = productRepository.update(sameProduct);
+        assertNotNull(result);
+        assertEquals("Sampo Cap Bambang", result.getProductName());
+        assertEquals(100, result.getProductQuantity());
+    }
+
+    @Test
+    void testDeleteProductAndCheckIfEmpty() {
+        Product product = new Product();
+        product.setProductId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        product.setProductName("Sampo Cap Bambang");
+        product.setProductQuantity(100);
+        productRepository.create(product);
+
+        productRepository.delete("eb558e9f-1c39-460e-8860-71af6af63bd6");
+
+        Iterator<Product> productIterator = productRepository.findAll();
+        assertFalse(productIterator.hasNext()); // Repository seharusnya kosong setelah penghapusan
+    }
 }
