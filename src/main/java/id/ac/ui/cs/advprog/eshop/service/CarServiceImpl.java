@@ -1,4 +1,5 @@
 package id.ac.ui.cs.advprog.eshop.service;
+
 import id.ac.ui.cs.advprog.eshop.model.Car;
 import id.ac.ui.cs.advprog.eshop.repository.CarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @Service
-public class CarServiceImpl implements CarService {
+public class CarServiceImpl implements CarReadableService, CarWritableService {
     @Autowired
     private CarRepository carRepository;
 
