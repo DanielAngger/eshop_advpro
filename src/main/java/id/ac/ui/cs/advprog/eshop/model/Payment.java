@@ -20,7 +20,11 @@ public class Payment {
     }
 
     private void setStatus(OrderStatus status) {
-        this.status = status;
+        if (status != null) {
+            this.status = status;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     public void validateVoucher() {
@@ -37,12 +41,12 @@ public class Payment {
         }
     }
 
-    public void validateCashOnDelivery() {
-        String address = paymentData.get("address");
-        String deliveryFee = paymentData.get("deliveryFee");
+    private boolean isEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
 
-        if (address == null || address.trim().isEmpty() ||
-                deliveryFee == null || deliveryFee.trim().isEmpty()) {
+    public void validateCashOnDelivery() {
+        if (isEmpty(paymentData.get("address")) || isEmpty(paymentData.get("deliveryFee"))) {
             setStatus(OrderStatus.REJECTED);
         } else {
             setStatus(OrderStatus.SUCCESS);
