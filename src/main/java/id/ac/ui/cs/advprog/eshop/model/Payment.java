@@ -19,7 +19,7 @@ public class Payment {
         this.paymentData = paymentData;
     }
 
-    private void setStatus(OrderStatus status) {
+    public void setStatus(OrderStatus status) {
         if (status != null) {
             this.status = status;
         } else {
