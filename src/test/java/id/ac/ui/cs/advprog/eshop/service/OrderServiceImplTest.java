@@ -88,10 +88,10 @@ class OrderServiceImplTest {
 
     @Test
     void testUpdateStatusInvalid0rderId() {
-        doReturn(null).when(orderRepository).findById("zeze");
+        doReturn(null).when(orderRepository).findById("zczc");
 
         assertThrows(NoSuchElementException.class,
-                () -> orderService.updateStatus("zezc", OrderStatus.SUCCESS.getValue()));
+                () -> orderService.updateStatus("zczc", OrderStatus.SUCCESS.getValue()));
         verify(orderRepository, times(0)).save(any(Order.class));
     }
 
@@ -107,7 +107,7 @@ class OrderServiceImplTest {
     @Test
     void testFindByIdIfIdNotFound() {
         doReturn(null).when(orderRepository).findById("zczc");
-        assertNull(orderService.findById("zezc"));
+        assertNull(orderService.findById("zczc"));
     }
 
     @Test
