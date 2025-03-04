@@ -86,4 +86,33 @@ class PaymentServiceTest {
 
         verify(paymentRepository, times(1)).deleteById("P002");
     }
+
+    @Test
+    void testProcessPaymentWithValidVoucher() {
+        Map<String, String> paymentData = new HashMap<>();
+        paymentData.put("voucherCode", "ESHOP12345678"); // Valid voucher
+
+        Payment payment = new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentRepository.findById("P001")).thenReturn(Optional.of(payment));
+
+        paymentService.processPayment("P001");
+
+        assertEquals(OrderStatus.SUCCESS, payment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+    }
+
+    @Test
+    void testProcessPaymentWithInvalidVoucher() {
+        Map<String, String> paymentData = new HashMap<>();
+        paymentData.put("voucherCode", "INVALID1234"); // Invalid voucher
+
+        Payment payment = new Payment("P002", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentRepository.findById("P002")).thenReturn(Optional.of(payment));
+
+        paymentService.processPayment("P002");
+
+        assertEquals(OrderStatus.REJECTED, payment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+    }
+
 }
