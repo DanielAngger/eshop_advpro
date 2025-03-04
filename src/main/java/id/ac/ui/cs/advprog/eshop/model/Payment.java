@@ -1,8 +1,11 @@
 package id.ac.ui.cs.advprog.eshop.model;
 
 import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
+import lombok.Getter;
+
 import java.util.Map;
 
+@Getter
 public class Payment {
     private static final String VALID_VOUCHER = "ESHOP1234ABC5678";
 
@@ -16,22 +19,6 @@ public class Payment {
         this.method = method;
         this.status = status;
         this.paymentData = paymentData;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public Map<String, String> getPaymentData() {
-        return paymentData;
     }
 
     private void setStatus(OrderStatus status) {
