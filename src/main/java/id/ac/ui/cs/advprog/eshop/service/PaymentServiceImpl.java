@@ -39,4 +39,15 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.deleteById(id);
     }
+
+    public void processPayment(String id) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Payment tidak ditemukan."));
+
+        if ("VOUCHER".equals(payment.getMethod())) {
+            payment.validateVoucher();
+        }
+
+        paymentRepository.save(payment);
+    }
 }
