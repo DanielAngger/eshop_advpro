@@ -60,14 +60,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void validateCashOnDelivery(Payment payment) {
-        Map<String, String> paymentData = payment.getPaymentData();
-        String address = paymentData.get("address");
-        String deliveryFee = paymentData.get("deliveryFee");
-
-        if (address == null || address.isEmpty() || deliveryFee == null || deliveryFee.isEmpty()) {
-            payment.setStatus(OrderStatus.REJECTED);
-        } else {
+        if (payment.isValidCashOnDelivery()) {
             payment.setStatus(OrderStatus.SUCCESS);
+        } else {
+            payment.setStatus(OrderStatus.REJECTED);
         }
     }
 }

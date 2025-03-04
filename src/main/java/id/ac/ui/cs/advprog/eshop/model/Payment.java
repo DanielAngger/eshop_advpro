@@ -52,4 +52,11 @@ public class Payment {
             setStatus(OrderStatus.SUCCESS);
         }
     }
+
+    public boolean isValidCashOnDelivery() {
+        String address = paymentData.get("address");
+        String deliveryFee = paymentData.get("deliveryFee");
+
+        return address != null && !address.isEmpty() && deliveryFee != null && !deliveryFee.isEmpty();
+    }
 }
