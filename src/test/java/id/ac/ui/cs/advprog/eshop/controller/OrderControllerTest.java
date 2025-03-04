@@ -1,33 +1,29 @@
 package id.ac.ui.cs.advprog.eshop.controller;
 
-import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
 import id.ac.ui.cs.advprog.eshop.model.Order;
-import id.ac.ui.cs.advprog.eshop.model.Payment;
+import id.ac.ui.cs.advprog.eshop.model.Product;
 import id.ac.ui.cs.advprog.eshop.service.OrderService;
-import id.ac.ui.cs.advprog.eshop.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderControllerTest {
-    @Mock
-    private OrderService orderService;
 
     @Mock
-    private PaymentService paymentService;
+    private OrderService orderService;
 
     @Mock
     private Model model;
@@ -35,54 +31,65 @@ class OrderControllerTest {
     @InjectMocks
     private OrderController orderController;
 
-    private Order sampleOrder;
+    private Order order;
+
+    private List<Product> products;
 
     @BeforeEach
     void setUp() {
-        sampleOrder = new Order("1", Collections.emptyList(), "2025-03-04", "Daniel", "PENDING");
+        this.products = new ArrayList<>();
+        Product product1 = new Product();
+        product1.setProductId("eb5589-1c39-460e-8860-71afbaf63bd6");
+        product1. setProductName("Sampo Cap Bambang");
+        product1.setProductQuantity(2);
+        Product product2 = new Product () ;
+        product2.setProductId("a2c62328-4a37-4664-83c7-f32db8620155");
+        product2.setProductName("Sabun Cap Usep");
+        product2.setProductQuantity(1);
+        this.products.add(product1);
+        this.products.add(product2);
+
+        order = new Order ("13652556-012a-4c07-b546-54eb1396d79b", this.products,1708560000L,"Safira Sudrajat");
     }
 
     @Test
-    void testCreateOrderPage() {
-        String viewName = orderController.createOrderPage();
-        assertEquals("order/create", viewName);
+    void testShowCreateOrderPage() {
+        String view = orderController.showCreateOrderPage();
+        assertEquals("order/create", view);
     }
 
     @Test
-    void testHistoryPage() {
-        String viewName = orderController.historyPage();
-        assertEquals("order/history", viewName);
+    void testShowOrderHistoryForm() {
+        String view = orderController.showOrderHistoryForm();
+        assertEquals("order/history", view);
     }
 
     @Test
-    void testShowOrderHistory() {
-        when(orderService.findAllByAuthor("Daniel")).thenReturn(Collections.singletonList(sampleOrder));
+    void testGetOrderHistory() {
+        when(orderService.findAllByAuthor("Daniel")).thenReturn(List.of(order));
 
-        String viewName = orderController.showOrderHistory("Daniel", model);
-
+        String view = orderController.getOrderHistory("Daniel", model);
+        assertEquals("order/history", view);
         verify(model).addAttribute(eq("orders"), anyList());
-        assertEquals("order/history", viewName);
     }
 
     @Test
-    void testShowPaymentPage() {
-        when(orderService.findById("1")).thenReturn(sampleOrder);
+    void testShowPaymentOrderPage() {
+        when(orderService.findById("1")).thenReturn(order);
 
-        String viewName = orderController.showPaymentPage("1", model);
+        ModelAndView modelAndView = orderController.showPaymentOrderPage("1");
 
-        verify(model).addAttribute("order", sampleOrder);
-        assertEquals("order/pay", viewName);
+        assertEquals("order/pay", modelAndView.getViewName());
+        assertNotNull(modelAndView.getModel().get("order"));
     }
 
     @Test
     void testProcessPayment() {
-        Map<String, String> paymentData = new HashMap<>();
-        Payment mockPayment = new Payment("1", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
-        when(paymentService.createPayment(any())).thenReturn(mockPayment);
+        when(orderService.updateStatus("1", "PAID")).thenReturn(order);
 
-        String viewName = orderController.processPayment("1", model);
+        ModelAndView modelAndView = orderController.processPayment("1");
 
-        verify(model).addAttribute("paymentId", mockPayment.getId());
-        assertEquals("order/payment_success", viewName);
+        assertEquals("order/payment-success", modelAndView.getViewName());
+        assertNotNull(modelAndView.getModel().get("paymentId"));
     }
 }
