@@ -90,7 +90,7 @@ class PaymentServiceTest {
     @Test
     void testProcessPaymentWithValidVoucher() {
         Map<String, String> paymentData = new HashMap<>();
-        paymentData.put("voucherCode", "ESHOP12345678"); // Valid voucher
+        paymentData.put("voucherCode", "ESHOP123ABC45678"); // Valid voucher
 
         Payment payment = new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
         when(paymentRepository.findById("P001")).thenReturn(Optional.of(payment));
