@@ -26,7 +26,6 @@ class PaymentServiceTest {
         Map<String, String> paymentData = new HashMap<>();
         Payment payment = new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
 
-        // Tidak perlu `when(paymentRepository.save())` karena save() bertipe void
         doNothing().when(paymentRepository).save(payment);
 
         Payment result = paymentService.createPayment(payment);
@@ -115,4 +114,48 @@ class PaymentServiceTest {
         verify(paymentRepository, times(1)).save(payment);
     }
 
+    @Test
+    void testProcessPaymentWithValidCashOnDelivery() {
+        Map<String, String> paymentData = new HashMap<>();
+        paymentData.put("address", "Jl. Merdeka No.10");
+        paymentData.put("deliveryFee", "5000");
+
+        Payment payment = new Payment("P003", "CASH_ON_DELIVERY", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentRepository.findById("P003")).thenReturn(Optional.of(payment));
+
+        paymentService.processPayment("P003");
+
+        assertEquals(OrderStatus.SUCCESS, payment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+    }
+
+    @Test
+    void testProcessPaymentWithEmptyAddressShouldBeRejected() {
+        Map<String, String> paymentData = new HashMap<>();
+        paymentData.put("address", ""); // Alamat kosong
+        paymentData.put("deliveryFee", "5000");
+
+        Payment payment = new Payment("P004", "CASH_ON_DELIVERY", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentRepository.findById("P004")).thenReturn(Optional.of(payment));
+
+        paymentService.processPayment("P004");
+
+        assertEquals(OrderStatus.REJECTED, payment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+    }
+
+    @Test
+    void testProcessPaymentWithEmptyDeliveryFeeShouldBeRejected() {
+        Map<String, String> paymentData = new HashMap<>();
+        paymentData.put("address", "Jl. Merdeka No.10");
+        paymentData.put("deliveryFee", ""); // Ongkir kosong
+
+        Payment payment = new Payment("P005", "CASH_ON_DELIVERY", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentRepository.findById("P005")).thenReturn(Optional.of(payment));
+
+        paymentService.processPayment("P005");
+
+        assertEquals(OrderStatus.REJECTED, payment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+    }
 }
