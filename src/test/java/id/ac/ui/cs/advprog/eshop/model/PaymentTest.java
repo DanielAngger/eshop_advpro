@@ -29,7 +29,7 @@ class PaymentTest {
         Payment payment = new Payment("2", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
         payment.validateVoucher();
 
-        assertEquals(OrderStatus.FAILED, payment.getStatus());
+        assertEquals(OrderStatus.REJECTED, payment.getStatus());
     }
 
     @Test

@@ -7,8 +7,6 @@ import java.util.Map;
 
 @Getter
 public class Payment {
-    private static final String VALID_VOUCHER = "ESHOP1234ABC5678";
-
     private String id;
     private String method;
     private OrderStatus status;
@@ -27,10 +25,27 @@ public class Payment {
 
     public void validateVoucher() {
         String voucherCode = paymentData.get("voucherCode");
-        if (VALID_VOUCHER.equals(voucherCode)) {
+
+        if (voucherCode != null &&
+                voucherCode.length() == 16 &&
+                voucherCode.startsWith("ESHOP") &&
+                voucherCode.replaceAll("[^0-9]", "").length() == 8) {
+
             setStatus(OrderStatus.SUCCESS);
         } else {
-            setStatus(OrderStatus.FAILED);
+            setStatus(OrderStatus.REJECTED);
+        }
+    }
+
+    public void validateCashOnDelivery() {
+        String address = paymentData.get("address");
+        String deliveryFee = paymentData.get("deliveryFee");
+
+        if (address == null || address.trim().isEmpty() ||
+                deliveryFee == null || deliveryFee.trim().isEmpty()) {
+            setStatus(OrderStatus.REJECTED);
+        } else {
+            setStatus(OrderStatus.SUCCESS);
         }
     }
 }
