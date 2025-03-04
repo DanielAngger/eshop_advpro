@@ -13,12 +13,12 @@ import static org.mockito.Mockito.*;
 
 class PaymentServiceTest {
     private PaymentRepository paymentRepository;
-    private PaymentService paymentService;
+    private PaymentServiceImpl paymentService;
 
     @BeforeEach
     void setUp() {
         paymentRepository = mock(PaymentRepository.class);
-        paymentService = new PaymentService(paymentRepository);
+        paymentService = new PaymentServiceImpl(paymentRepository);
     }
 
     @Test
