@@ -14,11 +14,11 @@ public class PaymentRepository {
         return Optional.ofNullable(paymentStorage.get(id));
     }
 
-    public void delete(String id) {
+    public void deleteById(String id) {
         paymentStorage.remove(id);
     }
 
-    public List<Payment> findAll() {
-        return new ArrayList<>(paymentStorage.values());
+    public Collection<Payment> findAll() {
+        return Collections.unmodifiableCollection(paymentStorage.values());
     }
 }

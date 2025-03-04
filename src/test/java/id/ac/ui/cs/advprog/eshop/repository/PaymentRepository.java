@@ -42,7 +42,7 @@ class PaymentRepositoryTest {
         Payment payment = new Payment("2", "CREDIT_CARD", OrderStatus.SUCCESS, new HashMap<>());
         paymentRepository.save(payment);
 
-        paymentRepository.delete("2");
+        paymentRepository.deleteById("2");
 
         Optional<Payment> retrievedPayment = paymentRepository.findById("2");
         assertFalse(retrievedPayment.isPresent());
