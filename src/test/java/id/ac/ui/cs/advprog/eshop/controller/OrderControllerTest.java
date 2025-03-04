@@ -1,7 +1,10 @@
 package id.ac.ui.cs.advprog.eshop.controller;
 
+import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
 import id.ac.ui.cs.advprog.eshop.model.Order;
+import id.ac.ui.cs.advprog.eshop.model.Payment;
 import id.ac.ui.cs.advprog.eshop.service.OrderService;
+import id.ac.ui.cs.advprog.eshop.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,98 +14,75 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderControllerTest {
-
-    @InjectMocks
-    private OrderController orderController;
-
     @Mock
     private OrderService orderService;
 
     @Mock
+    private PaymentService paymentService;
+
+    @Mock
     private Model model;
+
+    @InjectMocks
+    private OrderController orderController;
+
+    private Order sampleOrder;
 
     @BeforeEach
     void setUp() {
+        sampleOrder = new Order("1", Collections.emptyList(), "2025-03-04", "Daniel", "PENDING");
     }
 
     @Test
-    void testShowCreateOrderPage() {
-        String viewName = orderController.showCreateOrderPage(model);
-        assertEquals("CreateOrder", viewName);
+    void testCreateOrderPage() {
+        String viewName = orderController.createOrderPage();
+        assertEquals("order/create", viewName);
     }
 
     @Test
-    void testShowOrderHistoryPage() {
-        String viewName = orderController.showOrderHistoryPage(model);
-        assertEquals("OrderHistory", viewName);
+    void testHistoryPage() {
+        String viewName = orderController.historyPage();
+        assertEquals("order/history", viewName);
     }
 
     @Test
-    void testShowOrdersByAuthor_WithExistingOrders() {
-        List<Order> orders = List.of(new Order(1L, "John Doe", "Item A", 2));
-        when(orderService.getOrdersByAuthor("John Doe")).thenReturn(orders);
+    void testShowOrderHistory() {
+        when(orderService.findAllByAuthor("Daniel")).thenReturn(Collections.singletonList(sampleOrder));
 
-        String viewName = orderController.showOrdersByAuthor("John Doe", model);
+        String viewName = orderController.showOrderHistory("Daniel", model);
 
-        verify(model).addAttribute("orders", orders);
-        assertEquals("OrderList", viewName);
+        verify(model).addAttribute(eq("orders"), anyList());
+        assertEquals("order/history", viewName);
     }
 
     @Test
-    void testShowOrdersByAuthor_NoOrdersFound() {
-        when(orderService.getOrdersByAuthor("Unknown")).thenReturn(Collections.emptyList());
+    void testShowPaymentPage() {
+        when(orderService.findById("1")).thenReturn(sampleOrder);
 
-        String viewName = orderController.showOrdersByAuthor("Unknown", model);
+        String viewName = orderController.showPaymentPage("1", model);
 
-        verify(model).addAttribute("orders", Collections.emptyList());
-        assertEquals("OrderList", viewName);
+        verify(model).addAttribute("order", sampleOrder);
+        assertEquals("order/pay", viewName);
     }
 
     @Test
-    void testShowPaymentPage_WithValidOrder() {
-        Order order = new Order(1L, "John Doe", "Item A", 2);
-        when(orderService.getOrderById(1L)).thenReturn(order);
+    void testProcessPayment() {
+        Map<String, String> paymentData = new HashMap<>();
+        Payment mockPayment = new Payment("1", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
+        when(paymentService.createPayment(any())).thenReturn(mockPayment);
 
-        String viewName = orderController.showPaymentPage(1L, model);
+        String viewName = orderController.processPayment("1", model);
 
-        verify(model).addAttribute("order", order);
-        assertEquals("OrderPayment", viewName);
-    }
-
-    @Test
-    void testShowPaymentPage_OrderNotFound() {
-        when(orderService.getOrderById(99L)).thenReturn(null);
-
-        String viewName = orderController.showPaymentPage(99L, model);
-
-        verify(model).addAttribute("error", "Order not found!");
-        assertEquals("OrderPayment", viewName);
-    }
-
-    @Test
-    void testProcessPayment_Success() {
-        when(orderService.processPayment(1L)).thenReturn("PAYMENT-123");
-
-        String viewName = orderController.processPayment(1L, model);
-
-        verify(model).addAttribute("paymentId", "PAYMENT-123");
-        assertEquals("PaymentSuccess", viewName);
-    }
-
-    @Test
-    void testProcessPayment_Failure() {
-        when(orderService.processPayment(2L)).thenReturn(null);
-
-        String viewName = orderController.processPayment(2L, model);
-
-        verify(model).addAttribute("error", "Payment failed!");
-        assertEquals("OrderPayment", viewName);
+        verify(model).addAttribute("paymentId", mockPayment.getId());
+        assertEquals("order/payment_success", viewName);
     }
 }
