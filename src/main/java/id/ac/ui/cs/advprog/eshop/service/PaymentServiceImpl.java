@@ -44,8 +44,12 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment tidak ditemukan."));
 
-        if ("VOUCHER".equals(payment.getMethod())) {
-            payment.validateVoucher();
+        switch (payment.getMethod()) {
+            case "VOUCHER":
+                payment.validateVoucher();
+                break;
+            default:
+                throw new IllegalArgumentException("Metode pembayaran tidak valid.");
         }
 
         paymentRepository.save(payment);
