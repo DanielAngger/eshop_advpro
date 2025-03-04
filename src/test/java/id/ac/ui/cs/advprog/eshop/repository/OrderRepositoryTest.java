@@ -74,12 +74,13 @@ class OrderRepositoryTest {
     void testFindByIdIfIdFound() {
         for (Order order : orders) {
             orderRepository.save(order);
-            Order findResult = orderRepository.findById(orders.get(1).getId());
-            assertEquals(orders.get(1).getId(), findResult.getId());
-            assertEquals(orders.get(1).getOrderTime(), findResult.getOrderTime());
-            assertEquals(orders.get(1).getAuthor(), findResult.getAuthor());
-            assertEquals(orders.get(1).getStatus(), findResult.getStatus());
         }
+
+        Order findResult = orderRepository.findById(orders.get(1).getId());
+        assertEquals(orders.get(1).getId(), findResult.getId());
+        assertEquals(orders.get(1).getOrderTime(), findResult.getOrderTime());
+        assertEquals(orders.get(1).getAuthor(), findResult.getAuthor());
+        assertEquals(orders.get(1).getStatus(), findResult.getStatus());
     }
 
     @Test
@@ -95,10 +96,11 @@ class OrderRepositoryTest {
     void testFindAllByAuthorIfAuthorCorrect() {
         for (Order order : orders) {
             orderRepository.save(order);
-            List<Order> orderList = orderRepository.findAllByAuthor(
-                    orders.get(1).getAuthor());
-            assertEquals(2, orderList.size());
         }
+
+        List<Order> orderList = orderRepository.findAllByAuthor(
+                    orders.get(1).getAuthor());
+        assertEquals(2, orderList.size());
     }
 
     @Test
