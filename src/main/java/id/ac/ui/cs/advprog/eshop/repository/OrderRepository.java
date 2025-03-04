@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-class OrderRepository {
+public class OrderRepository {
     private List<Order> orderData = new ArrayList<>();
 
     public Order save(Order order) {
