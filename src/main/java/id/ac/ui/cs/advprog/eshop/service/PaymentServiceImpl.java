@@ -14,6 +14,9 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public Payment createPayment(Payment payment) {
+        if (paymentRepository.findById(payment.getId()).isPresent()) {
+            throw new IllegalArgumentException("Payment dengan ID ini sudah ada.");
+        }
         paymentRepository.save(payment);
         return payment;
     }
@@ -27,16 +30,13 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public void deletePaymentById(String id) {
-        Optional<Payment> optionalPayment = paymentRepository.findById(id);
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Payment tidak ditemukan."));
 
-        if (optionalPayment.isPresent()) {
-            Payment payment = optionalPayment.get();
-            if (payment.getStatus() != OrderStatus.WAITING_PAYMENT) {
-                throw new IllegalStateException("Payment hanya bisa dihapus jika statusnya WAITING_PAYMENT.");
-            }
-            paymentRepository.deleteById(id);
-        } else {
-            throw new IllegalArgumentException("Payment tidak ditemukan.");
+        if (payment.getStatus() != OrderStatus.WAITING_PAYMENT) {
+            throw new IllegalStateException("Payment hanya bisa dihapus jika statusnya WAITING_PAYMENT.");
         }
+
+        paymentRepository.deleteById(id);
     }
 }
