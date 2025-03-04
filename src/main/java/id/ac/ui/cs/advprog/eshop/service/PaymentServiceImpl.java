@@ -4,6 +4,7 @@ import id.ac.ui.cs.advprog.eshop.model.Payment;
 import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
 import id.ac.ui.cs.advprog.eshop.repository.PaymentRepository;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 public class PaymentServiceImpl implements PaymentService {
@@ -48,10 +49,25 @@ public class PaymentServiceImpl implements PaymentService {
             case "VOUCHER":
                 payment.validateVoucher();
                 break;
+            case "CASH_ON_DELIVERY":
+                validateCashOnDelivery(payment);
+                break;
             default:
                 throw new IllegalArgumentException("Metode pembayaran tidak valid.");
         }
 
         paymentRepository.save(payment);
+    }
+
+    private void validateCashOnDelivery(Payment payment) {
+        Map<String, String> paymentData = payment.getPaymentData();
+        String address = paymentData.get("address");
+        String deliveryFee = paymentData.get("deliveryFee");
+
+        if (address == null || address.isEmpty() || deliveryFee == null || deliveryFee.isEmpty()) {
+            payment.setStatus(OrderStatus.REJECTED);
+        } else {
+            payment.setStatus(OrderStatus.SUCCESS);
+        }
     }
 }
