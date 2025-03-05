@@ -27,9 +27,10 @@ public class PaymentController {
     @GetMapping("/detail/{paymentId}")
     public ModelAndView showPaymentDetail(@PathVariable String paymentId) {
         Payment payment = paymentService.getPayment(paymentId);
-        ModelAndView modelAndView = new ModelAndView("payment/detail");
-        modelAndView.addObject("payment", payment);
-        return modelAndView;
+        if (payment == null) {
+            return new ModelAndView("error").addObject("message", "Payment not found");
+        }
+        return new ModelAndView("payment/detail").addObject("payment", payment);
     }
 
     @GetMapping("/admin/list")
