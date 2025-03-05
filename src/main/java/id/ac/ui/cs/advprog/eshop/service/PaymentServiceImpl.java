@@ -40,9 +40,9 @@ public class PaymentServiceImpl implements PaymentService {
         Order order = orderRepository.findById(payment.getId());
         if (order != null) {
             if (newStatus == OrderStatus.SUCCESS) {
-                order = new Order(order.getId(), order.getProducts(), order.getOrderTime(), order.getAuthor(), "SUCCESS");
+                order.setStatus("SUCCESS");
             } else if (newStatus == OrderStatus.REJECTED) {
-                order = new Order(order.getId(), order.getProducts(), order.getOrderTime(), order.getAuthor(), "FAILED");
+                order.setStatus("FAILED");
             }
             orderRepository.save(order);
         }
