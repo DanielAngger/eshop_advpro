@@ -1,90 +1,115 @@
 package id.ac.ui.cs.advprog.eshop.service;
 
-import id.ac.ui.cs.advprog.eshop.model.Payment;
 import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
+import id.ac.ui.cs.advprog.eshop.model.Order;
+import id.ac.ui.cs.advprog.eshop.model.Payment;
+import id.ac.ui.cs.advprog.eshop.model.Product;
+import id.ac.ui.cs.advprog.eshop.repository.OrderRepository;
 import id.ac.ui.cs.advprog.eshop.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PaymentServiceTest {
+@ExtendWith(MockitoExtension.class)
+public class PaymentServiceTest {
+
+    @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @InjectMocks
     private PaymentServiceImpl paymentService;
+
+    private Order order;
+    private Payment payment;
+    private Map<String, String> paymentData;
+    private List<Product> products;
 
     @BeforeEach
     void setUp() {
-        paymentRepository = mock(PaymentRepository.class);
-        paymentService = new PaymentServiceImpl(paymentRepository);
+        MockitoAnnotations.openMocks(this);
+
+        this.products = new ArrayList<>();
+        Product product1 = new Product();
+        product1.setProductId("eb5589-1c39-460e-8860-71afbaf63bd6");
+        product1.setProductName("Sampo Cap Bambang");
+        product1.setProductQuantity(2);
+        this.products.add(product1);
+
+        order = new Order("13652556-012a-4c07-b546-54eb1396d79b", this.products, 1708560000L, "Safira Sudrajat");
+        paymentData = new HashMap<>();
+        paymentData.put("voucherCode", "ESHOP123ABC45678");
+
+        payment = new Payment("1", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
     }
 
     @Test
-    void testCreatePaymentShouldSaveAndReturnPayment() {
-        Map<String, String> paymentData = new HashMap<>();
-        Payment payment = new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, paymentData);
+    void testAddPayment() {
+        doNothing().when(paymentRepository).save(any(Payment.class));
+        Payment createdPayment = paymentService.addPayment(order, "VOUCHER", paymentData);
 
-        doNothing().when(paymentRepository).save(payment);
+        assertNotNull(createdPayment);
+        assertEquals("VOUCHER", createdPayment.getMethod());
+        assertEquals(OrderStatus.WAITING_PAYMENT, createdPayment.getStatus());
+        verify(paymentRepository, times(1)).save(any(Payment.class));
+    }
 
-        Payment result = paymentService.createPayment(payment);
+    @Test
+    void testSetStatusSuccess() {
+        doNothing().when(paymentRepository).save(any(Payment.class));
+        when(orderRepository.findById(payment.getId())).thenReturn(order);
 
-        assertNotNull(result);
-        assertEquals("P001", result.getId());
+        Payment updatedPayment = paymentService.setStatus(payment, "SUCCESS");
+
+        assertEquals(OrderStatus.SUCCESS, updatedPayment.getStatus());
         verify(paymentRepository, times(1)).save(payment);
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     @Test
-    void testFindPaymentByIdShouldReturnCorrectPayment() {
-        Payment payment = new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, new HashMap<>());
-        when(paymentRepository.findById("P001")).thenReturn(Optional.of(payment));
+    void testSetStatusRejected() {
+        doNothing().when(paymentRepository).save(any(Payment.class));
+        when(orderRepository.findById(payment.getId())).thenReturn(order);
 
-        Optional<Payment> result = paymentService.findPaymentById("P001");
+        Payment updatedPayment = paymentService.setStatus(payment, "REJECTED");
 
-        assertTrue(result.isPresent());
-        assertEquals("P001", result.get().getId());
+        assertEquals(OrderStatus.REJECTED, updatedPayment.getStatus());
+        verify(paymentRepository, times(1)).save(payment);
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     @Test
-    void testFindAllPaymentsShouldReturnAllStoredPayments() {
-        List<Payment> payments = List.of(
-                new Payment("P001", "VOUCHER", OrderStatus.WAITING_PAYMENT, new HashMap<>()),
-                new Payment("P002", "CASH_ON_DELIVERY", OrderStatus.WAITING_PAYMENT, new HashMap<>())
-        );
+    void testGetPayment() {
+        when(paymentRepository.findById("1")).thenReturn(Optional.of(payment));
+        Payment retrievedPayment = paymentService.getPayment("1");
+
+        assertNotNull(retrievedPayment);
+        assertEquals("1", retrievedPayment.getId());
+        verify(paymentRepository, times(1)).findById("1");
+    }
+
+    @Test
+    void testGetAllPayments() {
+        List<Payment> payments = Arrays.asList(payment);
         when(paymentRepository.findAll()).thenReturn(payments);
 
-        Collection<Payment> result = paymentService.findAllPayments();
+        Collection<Payment> retrievedPayments = paymentService.getAllPayments();
 
-        assertEquals(2, result.size());
-        assertTrue(result.containsAll(payments));
+        assertEquals(1, retrievedPayments.size());
+        verify(paymentRepository, times(1)).findAll();
     }
 
-    @Test
-    void testDeletePaymentByIdShouldThrowExceptionIfStatusIsNotWaitingPayment() {
-        Payment payment = new Payment("P001", "VOUCHER", OrderStatus.SUCCESS, new HashMap<>()); // Status bukan WAITING_PAYMENT
-
-        when(paymentRepository.findById("P001")).thenReturn(Optional.of(payment));
-
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            paymentService.deletePaymentById("P001");
-        });
-
-        assertEquals("Payment hanya bisa dihapus jika statusnya WAITING_PAYMENT.", exception.getMessage());
-        verify(paymentRepository, never()).deleteById("P001"); // Pastikan delete tidak dipanggil
-    }
-
-    @Test
-    void testDeletePaymentByIdShouldWorkIfStatusIsWaitingPayment() {
-        Payment payment = new Payment("P002", "VOUCHER", OrderStatus.WAITING_PAYMENT, new HashMap<>());
-
-        when(paymentRepository.findById("P002")).thenReturn(Optional.of(payment));
-        doNothing().when(paymentRepository).deleteById("P002");
-
-        paymentService.deletePaymentById("P002");
-
-        verify(paymentRepository, times(1)).deleteById("P002");
-    }
 
     @Test
     void testProcessPaymentWithValidVoucher() {
