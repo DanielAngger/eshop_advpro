@@ -1,45 +1,66 @@
 package id.ac.ui.cs.advprog.eshop.service;
 
+import id.ac.ui.cs.advprog.eshop.model.Order;
 import id.ac.ui.cs.advprog.eshop.model.Payment;
 import id.ac.ui.cs.advprog.eshop.enums.OrderStatus;
+import id.ac.ui.cs.advprog.eshop.repository.OrderRepository;
 import id.ac.ui.cs.advprog.eshop.repository.PaymentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+@Service
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
 
-    public PaymentServiceImpl(PaymentRepository paymentRepository) {
+    @Autowired
+    public PaymentServiceImpl(PaymentRepository paymentRepository, OrderRepository orderRepository) {
         this.paymentRepository = paymentRepository;
+        this.orderRepository = orderRepository;
     }
 
-    public Payment createPayment(Payment payment) {
-        if (paymentRepository.findById(payment.getId()).isPresent()) {
-            throw new IllegalArgumentException("Payment dengan ID ini sudah ada.");
-        }
+    @Override
+    public Payment addPayment(Order order, String method, Map<String, String> paymentData) {
+        Payment payment = new Payment(order.getId(), method, OrderStatus.WAITING_PAYMENT, paymentData);
         paymentRepository.save(payment);
         return payment;
     }
 
-    public Optional<Payment> findPaymentById(String id) {
-        return paymentRepository.findById(id);
+    @Override
+    public Payment setStatus(Payment payment, String status) {
+        OrderStatus newStatus = OrderStatus.valueOf(status);
+        payment.setStatus(newStatus);
+        paymentRepository.save(payment);
+
+        // Update status order sesuai dengan status payment
+        Order order = orderRepository.findById(payment.getId());
+        if (order != null) {
+            if (newStatus == OrderStatus.SUCCESS) {
+                order = new Order(order.getId(), order.getProducts(), order.getOrderTime(), order.getAuthor(), "SUCCESS");
+            } else if (newStatus == OrderStatus.REJECTED) {
+                order = new Order(order.getId(), order.getProducts(), order.getOrderTime(), order.getAuthor(), "FAILED");
+            }
+            orderRepository.save(order);
+        }
+
+        return payment;
     }
 
-    public Collection<Payment> findAllPayments() {
+    @Override
+    public Payment getPayment(String paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment tidak ditemukan."));
+    }
+
+    @Override
+    public Collection<Payment> getAllPayments() {
         return paymentRepository.findAll();
     }
 
-    public void deletePaymentById(String id) {
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Payment tidak ditemukan."));
-
-        if (payment.getStatus() != OrderStatus.WAITING_PAYMENT) {
-            throw new IllegalStateException("Payment hanya bisa dihapus jika statusnya WAITING_PAYMENT.");
-        }
-
-        paymentRepository.deleteById(id);
-    }
 
     public void processPayment(String id) {
         Payment payment = paymentRepository.findById(id)
